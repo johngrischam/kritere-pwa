@@ -2,7 +2,7 @@
   "name": "Kritere TV PWA",
   "short_name": "Kritere TV",
   "start_url": "https://www.kritere.com/p/pwa.html",
-  "scope": "https://www.kritere.com",
+  "scope": "https://www.kritere.com/p/pwa.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#ff0000",
@@ -19,6 +19,7 @@
     }
   ]
 }
+
 
 
 
