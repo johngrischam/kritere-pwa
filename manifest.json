@@ -1,7 +1,7 @@
 {
   "name": "Kritere TV PWA",
   "short_name": "Kritere TV",
-  "start_url": "https://www.kritere.com/p/pwa.html",
+  "start_url": "https://5tvguide.blogspot.com/",
   "scope": "https://www.kritere.com/p/",
   "display": "standalone",
   "background_color": "#000000",
@@ -19,6 +19,7 @@
     }
   ]
 }
+
 
 
 
