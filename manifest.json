@@ -1,7 +1,7 @@
 {
   "name": "Kritere TV PWA",
   "short_name": "Kritere TV",
-  "start_url": "https://www.kritere.com/2025/06/guarda-50-canali-tv-italiani-gratis.html",
+  "start_url": "https://www.1fakt.com/p/it.html",
   "scope": "https://www.kritere.com/",
   "display": "standalone",
   "background_color": "#000000",
@@ -19,6 +19,7 @@
     }
   ]
 }
+
 
 
 
