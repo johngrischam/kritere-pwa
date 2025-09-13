@@ -1,16 +1,12 @@
-const CACHE_NAME = "kritere-pwa-cache-v4";
-const TRUSTED_ORIGINS = [
-  "https://www.kritere.com",
-  "https://1fakt.com",
-  "https://sportzonline.site"
-];
+const CACHE_NAME = "kritere-pwa-cache-v1";
 const OFFLINE_URLS = [
-  "https://www.1fakt.com/",
-  "https://www.1fakt.com/p/redirect.html"
+  "https://www.kritere.com/",
+  "https://www.kritere.com/2025/06/guarda-50-canali-tv-italiani-gratis.html"
 ];
-const REDIRECT_PATH = "/p/redirect.html?to=";
 
-// Install: cache core assets
+const TRUSTED_DOMAINS = ["kritere.com", "1fakt.com", "sportzonline.site"];
+
+// Install event: cache offline URLs
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(OFFLINE_URLS))
@@ -18,66 +14,44 @@ self.addEventListener("install", event => {
   self.skipWaiting();
 });
 
-// Activate: clean up old caches
+// Activate event: clean old caches
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
     )
   );
   self.clients.claim();
 });
 
-// Fetch: intercept requests
+// Fetch event: caching + trusted links logic
 self.addEventListener("fetch", event => {
-  const reqUrl = new URL(event.request.url);
+  const requestURL = new URL(event.request.url);
 
-  // Handle navigation requests (top-level)
+  // Handle navigation requests
   if (event.request.mode === "navigate") {
-    const isTrusted = TRUSTED_ORIGINS.some(origin =>
-      reqUrl.href === origin || reqUrl.href.startsWith(origin + "/")
-    );
-
-    if (isTrusted) {
-      // Serve from cache if available, otherwise fetch from network
-      event.respondWith(
-        caches.match(event.request).then(cached => {
-          if (cached) return cached;
-          return fetch(event.request).then(networkResp => {
-            return caches.open(CACHE_NAME).then(cache => {
-              try { cache.put(event.request, networkResp.clone()); } catch(e){}
-              return networkResp;
-            });
-          }).catch(() => caches.match(OFFLINE_URLS[0]));
-        })
-      );
-    } else {
-      // Untrusted navigation -> route to intermediate redirect page
-      const redirectUrl = new URL(REDIRECT_PATH, self.location.origin);
-      redirectUrl.searchParams.set('to', reqUrl.href);
-      event.respondWith(Response.redirect(redirectUrl.href));
+    const isTrusted = TRUSTED_DOMAINS.some(domain => requestURL.hostname.endsWith(domain));
+    if (!isTrusted) {
+      // Redirect untrusted navigation to root
+      event.respondWith(Response.redirect("https://www.kritere.com/"));
+      return;
     }
-    return;
   }
 
-  // Handle subresource requests
-  if (reqUrl.origin === location.origin) {
+  // Handle caching for kritere.com
+  if (requestURL.origin === self.location.origin) {
     event.respondWith(
-      caches.match(event.request).then(cached => {
-        if (cached) return cached;
-        return fetch(event.request).then(networkResp => {
-          return caches.open(CACHE_NAME).then(cache => {
-            try { cache.put(event.request, networkResp.clone()); } catch(e){}
-            return networkResp;
-          });
-        }).catch(() => caches.match(OFFLINE_URLS[0]));
+      caches.match(event.request).then(cachedResponse => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(event.request).then(networkResponse => {
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse.clone()));
+          return networkResponse;
+        }).catch(() => caches.match(OFFLINE_URLS[1]));
       })
     );
-  } else {
-    // Cross-origin resources: fetch normally
-    return;
   }
 });
+
 
 
 
