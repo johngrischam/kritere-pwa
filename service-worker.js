@@ -1,13 +1,16 @@
-const CACHE_NAME = "kritere-pwa-cache-v2";
+const CACHE_NAME = "kritere-pwa-cache-v3";
+const TRUSTED_ORIGINS = [
+  "https://www.kritere.com",
+  "https://1fakt.com",
+  "https://sportzonline.site"
+];
 const OFFLINE_URLS = [
   "https://www.kritere.com/",
-  "https://www.kritere.com/2025/06/guarda-50-canali-tv-italiani-gratis.html"
+  "https://www.kritere.com/2025/06/guarda-50-canali-tv-italiani-gratis.html",
+  "https://www.1fakt.com/p/redirect.html"
 ];
 
-// Trusted domains allowed inside the PWA
-const TRUSTED_DOMAINS = ["kritere.com", "1fakt.com", "sportzonline.site"];
-
-// Install event: cache offline URLs
+// Install: cache core assets
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(OFFLINE_URLS))
@@ -15,54 +18,65 @@ self.addEventListener("install", event => {
   self.skipWaiting();
 });
 
-// Activate event: clean old caches
+// Activate: clean old caches
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
-// Fetch event: handle trusted domains, block about:blank
+// Fetch: trusted caching + redirect untrusted navigations
 self.addEventListener("fetch", event => {
-  const url = new URL(event.request.url);
+  const reqUrl = new URL(event.request.url);
 
-  // 🚫 Block about:blank navigations
-  if (url.protocol === "about:") {
-    event.respondWith(new Response("", { status: 204 })); // Empty response
-    return;
-  }
-
-  // Only enforce trusted domains for navigation requests
+  // Top-level navigation
   if (event.request.mode === "navigate") {
-    const isTrusted = TRUSTED_DOMAINS.some(domain => url.hostname.endsWith(domain));
-
-    if (!isTrusted) {
-      // Redirect untrusted navigation back to kritere home
-      event.respondWith(Response.redirect("https://www.kritere.com/"));
+    const isTrusted = TRUSTED_ORIGINS.some(origin => reqUrl.href.startsWith(origin + "/") || reqUrl.href === origin);
+    if (isTrusted) {
+      event.respondWith(
+        caches.match(event.request).then(cached => {
+          if (cached) return cached;
+          return fetch(event.request).then(networkResponse => {
+            return caches.open(CACHE_NAME).then(cache => {
+              try { cache.put(event.request, networkResponse.clone()); } catch(e){}
+              return networkResponse;
+            });
+          }).catch(() => caches.match(OFFLINE_URLS[1]));
+        })
+      );
+      return;
+    } else {
+      // Untrusted navigation → redirect through intermediate page
+      const redirectUrl = new URL('/p/redirect.html', self.location.origin);
+      redirectUrl.searchParams.set('to', reqUrl.href);
+      event.respondWith(Response.redirect(redirectUrl.href));
       return;
     }
   }
 
-  // Handle caching only for kritere.com (your origin)
-  if (url.origin === self.location.origin) {
+  // Subresources
+  if (reqUrl.origin === location.origin) {
     event.respondWith(
-      caches.match(event.request).then(cachedResponse => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
         return fetch(event.request).then(networkResponse => {
           return caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, networkResponse.clone());
+            try { cache.put(event.request, networkResponse.clone()); } catch(e){}
             return networkResponse;
           });
         }).catch(() => caches.match(OFFLINE_URLS[1]));
       })
     );
+  } else {
+    // Cross-origin subresources → default network fetch
+    return;
   }
 });
+
+
 
 
 
