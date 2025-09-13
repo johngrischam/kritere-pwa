@@ -1,7 +1,7 @@
 const CACHE_NAME = "kritere-pwa-cache-v1";
 const OFFLINE_URLS = [
   "https://www.kritere.com/",          // root page to cache
-  "https://www.kritere.com/p/pwa.html" // your main PWA page
+  "https://www.kritere.com/2025/06/guarda-50-canali-tv-italiani-gratis.html" // your main PWA page
 ];
 
 // Install event: cache offline URLs
@@ -52,3 +52,4 @@ self.addEventListener("fetch", event => {
     );
   }
 });
+
