@@ -1,24 +1,26 @@
 {
-  "name": "Kritere TV PWA",
-  "short_name": "Kritere TV",
-  "start_url": "https://www.kritere.com/2025/06/guarda-50-canali-tv-italiani-gratis.html",
-  "scope": "https://www.kritere.com/",
+  "name": "Kritere PWA",
+  "short_name": "Kritere",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#ff0000",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
   "icons": [
     {
-      "src": "icons/icon-192x192.png",
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-512x512.png",
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "gcm_sender_id": "482941778795",
+  "gcm_sender_id_comment": "Do not change the GCM Sender ID"
 }
+
 
 
 
