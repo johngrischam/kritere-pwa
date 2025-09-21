@@ -1,7 +1,7 @@
 {
   "name": "Kritere PWA",
   "short_name": "Kritere",
-  "start_url": "/",
+  "start_url": "https://www.kritere.com/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
@@ -20,6 +20,7 @@
   "gcm_sender_id": "482941778795",
   "gcm_sender_id_comment": "Do not change the GCM Sender ID"
 }
+
 
 
 
