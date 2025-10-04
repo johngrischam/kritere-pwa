@@ -1,8 +1,9 @@
 const CACHE_NAME = "kritere-pwa-cache-v1";
+const OFFLINE_URL = "https://www.kritere.com/p/assistenza-tv.html";
 
-const OFFLINE_URLS = [
-  "https://www.kritere.com/",
-  "https://www.kritere.com/2025/06/guarda-50-canali-tv-italiani-gratis.html",
+// Assets that are crucial for the offline page and PWA shell, which are pre-cached.
+const OFFLINE_ASSETS = [
+  OFFLINE_URL,
   "https://johngrischam.github.io/kritere-pwa/icons/icon-72x72.png",
   "https://johngrischam.github.io/kritere-pwa/icons/icon-128x128.png",
   "https://johngrischam.github.io/kritere-pwa/icons/icon-144x144.png",
@@ -10,52 +11,78 @@ const OFFLINE_URLS = [
   "https://johngrischam.github.io/kritere-pwa/icons/icon-512x512.png"
 ];
 
-// Install event: cache offline URLs
+// --- INSTALL HANDLER (Pre-caching Core Assets) ---
 self.addEventListener("install", event => {
+  console.log('[Service Worker] Install event: Pre-caching core assets.');
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(OFFLINE_URLS);
+      // Add all core assets to the cache
+      return cache.addAll(OFFLINE_ASSETS);
     })
   );
+  // Force the waiting service worker to become the active service worker immediately
   self.skipWaiting();
 });
 
-// Activate event: clean old caches
+// --- ACTIVATE HANDLER (Cleaning Old Caches) ---
 self.addEventListener("activate", event => {
+  console.log('[Service Worker] Activate event: Cleaning old caches.');
   event.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-      );
-    })
+    caches.keys().then(keys =>
+      Promise.all(
+        // Filter out the current cache and delete all others
+        keys.filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
+      )
+    )
   );
+  // Take control of uncontrolled clients (tabs) immediately
   self.clients.claim();
 });
 
-// Fetch event: cache-first, fallback network, fallback offline
+// --- FETCH HANDLER (Network-First Strategy) ---
 self.addEventListener("fetch", event => {
-  event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+  const request = event.request;
 
-      return fetch(event.request)
-        .then(networkResponse => {
-          // Only cache successful GET requests
-          if (event.request.method === "GET" && networkResponse.ok) {
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(event.request, networkResponse.clone());
-            });
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Fallback to cached offline page(s)
-          return (
-            caches.match(OFFLINE_URLS[1]) || caches.match(OFFLINE_URLS[0])
-          );
-        });
-    })
+  // 1. Only handle GET requests and skip cross-origin requests for navigation
+  if (request.method !== "GET" || !request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
+  // 2. Special case: Cache-Only for the OFFLINE_URL (it's already cached)
+  if (request.url === OFFLINE_URL) {
+    event.respondWith(caches.match(request));
+    return;
+  }
+
+  // 3. Default strategy: Network-First, then Cache, then Offline Fallback
+  event.respondWith(
+    fetch(request)
+      .then(response => {
+        // Network was successful. We can return the response.
+        // Optional: Cache successful network responses here for future offline use.
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Network failed (user is offline or server is down)
+
+        // a) Try to find the requested resource in the cache
+        return caches.match(request)
+          .then(cachedResponse => {
+            // b) If found, return the cached version
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+
+            // c) If not found in cache, fall back to the generic offline page
+            return caches.match(OFFLINE_URL);
+          });
+      })
   );
 });
