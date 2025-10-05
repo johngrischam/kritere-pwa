@@ -4,7 +4,7 @@
   "start_url": "https://www.kritere.com/2025/06/guarda-50-canali-tv-italiani-gratis.html",
   "scope": "https://www.kritere.com",
   "description": "Guarda in diretta gratis anche all'estero la TV Italian su Kritere TV.",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#000000",
   "theme_color": "#ff0000",
   "icons": [
@@ -48,6 +48,7 @@
     }
   ]
 }
+
 
 
 
