@@ -1,4 +1,4 @@
-const CACHE_NAME = "kritere-pwa-cache-v1";
+const CACHE_NAME = "kritere-pwa-cache-v2";
 const OFFLINE_URL = "https://www.kritere.com/p/assistenza-tv.html";
 
 // Assets that are crucial for the offline page and PWA shell, which are pre-cached.
@@ -46,6 +46,11 @@ self.addEventListener("fetch", event => {
 
   // 1. Only handle GET requests and skip cross-origin requests for navigation
   if (request.method !== "GET" || !request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
+  // *** ADDED: exclude the /download route completely ***
+  if (request.url.includes("/download")) {
     return;
   }
 
