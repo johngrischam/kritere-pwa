@@ -1,6 +1,7 @@
 const CACHE_NAME = "kritere-pwa-cache-v2";
 const OFFLINE_URL = "https://www.kritere.com/p/assistenza-tv.html";
 
+// Assets that are crucial for the offline page and PWA shell, which are pre-cached.
 const OFFLINE_ASSETS = [
   OFFLINE_URL,
   "https://johngrischam.github.io/kritere-pwa/icons/icon-72x72.png",
@@ -10,55 +11,61 @@ const OFFLINE_ASSETS = [
   "https://johngrischam.github.io/kritere-pwa/icons/icon-512x512.png"
 ];
 
-// --- INSTALL HANDLER ---
+// --- INSTALL HANDLER (Pre-caching Core Assets) ---
 self.addEventListener("install", event => {
+  console.log('[Service Worker] Install event: Pre-caching core assets.');
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
+      // Add all core assets to the cache
       return cache.addAll(OFFLINE_ASSETS);
     })
   );
+  // Force the waiting service worker to become the active service worker immediately
   self.skipWaiting();
 });
 
-// --- ACTIVATE HANDLER ---
+// --- ACTIVATE HANDLER (Cleaning Old Caches) ---
 self.addEventListener("activate", event => {
+  console.log('[Service Worker] Activate event: Cleaning old caches.');
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
+        // Filter out the current cache and delete all others
         keys.filter(key => key !== CACHE_NAME)
           .map(key => caches.delete(key))
       )
     )
   );
+  // Take control of uncontrolled clients (tabs) immediately
   self.clients.claim();
 });
 
-// --- FETCH HANDLER (Bypass for Worker Downloads) ---
+// --- FETCH HANDLER (Network-First Strategy) ---
 self.addEventListener("fetch", event => {
   const request = event.request;
-  const url = new URL(request.url);
 
-  // 1. CRITICAL FIX: If the request is NOT for your domain (e.g., workers.dev), 
-  // stop the Service Worker from handling it. This lets the browser take over.
-  if (!url.hostname.includes("kritere.com")) {
-    return; 
-  }
-
-  // 2. Skip non-GET requests and specific download paths
-  if (request.method !== "GET" || url.pathname.includes("/download")) {
+  // 1. Only handle GET requests and skip cross-origin requests for navigation
+  if (request.method !== "GET" || !request.url.startsWith(self.location.origin)) {
     return;
   }
 
-  // 3. Special case: Cache-Only for the OFFLINE_URL
+  // *** ADDED: exclude the /download route completely ***
+  if (request.url.includes("/download")) {
+    return;
+  }
+
+  // 2. Special case: Cache-Only for the OFFLINE_URL (it's already cached)
   if (request.url === OFFLINE_URL) {
     event.respondWith(caches.match(request));
     return;
   }
 
-  // 4. Default strategy: Network-First
+  // 3. Default strategy: Network-First, then Cache, then Offline Fallback
   event.respondWith(
     fetch(request)
       .then(response => {
+        // Network was successful. We can return the response.
+        // Optional: Cache successful network responses here for future offline use.
         if (response && response.status === 200 && response.type === 'basic') {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then(cache => {
@@ -68,11 +75,19 @@ self.addEventListener("fetch", event => {
         return response;
       })
       .catch(() => {
+        // Network failed (user is offline or server is down)
+
+        // a) Try to find the requested resource in the cache
         return caches.match(request)
           .then(cachedResponse => {
-            return cachedResponse || caches.match(OFFLINE_URL);
+            // b) If found, return the cached version
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+
+            // c) If not found in cache, fall back to the generic offline page
+            return caches.match(OFFLINE_URL);
           });
       })
   );
 });
-
