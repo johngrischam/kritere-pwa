@@ -1,3 +1,5 @@
+importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
+
 const CACHE_NAME = "kritere-pwa-cache-v2";
 const OFFLINE_URL = "https://www.kritere.com/p/assistenza-tv.html";
 
@@ -91,3 +93,4 @@ self.addEventListener("fetch", event => {
       })
   );
 });
+
