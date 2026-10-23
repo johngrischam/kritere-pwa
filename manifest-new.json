@@ -1,10 +1,10 @@
 {
   "id": "/",
-  "name": "KriTere TV App",
-  "short_name": "KriTere TV",
+  "name": "1Fakt TV",
+  "short_name": "1Fakt TV",
   "start_url": "https://it.1fakt.com/",
   "scope": "https://it.1fakt.com/",
-  "description": "Guarda in diretta gratis anche all'estero la TV Italiana.",
+  "description": "1Fakt TV: guarda la TV italiana in diretta gratis, anche all'estero.",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#ff0000",
