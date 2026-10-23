@@ -1,0 +1,15 @@
+{
+  "id": "/",
+  "name": "KriTere TV App",
+  "short_name": "KriTere TV",
+  "start_url": "https://it.1fakt.com/",
+  "scope": "https://it.1fakt.com/",
+  "description": "Guarda in diretta gratis anche all'estero la TV Italiana.",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#ff0000",
+  "icons": [
+    { "src": "https://johngrischam.github.io/kritere-pwa/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "https://johngrischam.github.io/kritere-pwa/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
