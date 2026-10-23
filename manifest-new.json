@@ -6,10 +6,12 @@
   "scope": "https://it.1fakt.com/",
   "description": "1Fakt TV: guarda la TV italiana in diretta gratis, anche all'estero.",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#ff0000",
+  "background_color": "#e6e6e6",
+  "theme_color": "#0086c4",
   "icons": [
-    { "src": "https://johngrischam.github.io/kritere-pwa/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "https://johngrischam.github.io/kritere-pwa/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    { "src": "https://johngrischam.github.io/kritere-pwa/icons/1fakt-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "https://johngrischam.github.io/kritere-pwa/icons/1fakt-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "https://johngrischam.github.io/kritere-pwa/icons/1fakt-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "https://johngrischam.github.io/kritere-pwa/icons/1fakt-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
